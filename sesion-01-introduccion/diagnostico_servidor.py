@@ -19,6 +19,7 @@ la primera regla que se satisface concluye y detiene la inferencia (return).
 """
 
 import sys
+from datetime import datetime
 
 
 # ---------------------------------------------------------------------------
@@ -40,6 +41,12 @@ servidor_estado = {
 # esos casos van modificando el diccionario: sin restaurarlo, la segunda
 # ejecución partiría de los valores que dejó la primera.
 ESTADO_INICIAL = dict(servidor_estado)
+
+# Historial de la sesion. Mientras el diccionario de hechos guarda UN estado,
+# el que se esta evaluando en este momento, esta lista acumula el resultado de
+# cada servidor revisado. Es la diferencia entre la memoria de trabajo, que se
+# sobrescribe en cada consulta, y el registro de lo que el sistema ya decidio.
+historial = []
 
 
 # ---------------------------------------------------------------------------
@@ -259,6 +266,10 @@ def imprimir_diagnostico(nombre_caso, hechos):
     print("  Acción     : {}".format(accion))
     print()
 
+    # Se retorna el veredicto para que quien llame pueda registrarlo en el
+    # historial sin tener que volver a ejecutar el motor de inferencia.
+    return nivel, regla, diagnostico, accion
+
 
 # ---------------------------------------------------------------------------
 # 4. EJECUCIÓN: COBERTURA DE RAMAS DEL MOTOR DE INFERENCIA
@@ -338,6 +349,58 @@ def ejecutar_casos_de_prueba():
     print("=" * 74)
 
 
+def registrar_en_historial(nombre, hechos, resultado):
+    """Guarda un diagnostico en el registro de la sesion.
+
+    Los hechos se copian con dict() y no se guarda la referencia original,
+    porque el diccionario que recibe puede modificarse despues: sin la copia,
+    el historial mostraria los valores actuales y no los que produjeron ese
+    diagnostico, que es justamente lo que se quiere conservar.
+    """
+    nivel, regla, diagnostico, accion = resultado
+    historial.append({
+        "hora": datetime.now().strftime("%H:%M:%S"),
+        "nombre": nombre,
+        "hechos": dict(hechos),
+        "nivel": nivel,
+        "regla": regla,
+        "diagnostico": diagnostico,
+    })
+
+
+def mostrar_historial():
+    """Lista los diagnosticos de la sesion y resume cuantos hubo de cada nivel."""
+    print()
+    print("=" * 74)
+    print("HISTORIAL DE DIAGNOSTICOS DE LA SESION")
+    print("-" * 74)
+
+    if not historial:
+        print("  Todavia no se ha diagnosticado ningun servidor.")
+        print("=" * 74)
+        return
+
+    for numero, registro in enumerate(historial, start=1):
+        print("  {}. [{}] {:<12} regla {:<5} {}".format(
+            numero, registro["hora"], registro["nivel"],
+            registro["regla"], registro["nombre"]))
+        print("     Temp {}C | CPU {}% | Mem libre {}% | Ventilador {}".format(
+            registro["hechos"]["temperatura"], registro["hechos"]["cpu_uso"],
+            registro["hechos"]["memoria_libre"],
+            "ON" if registro["hechos"]["ventilador_activo"] else "OFF"))
+        print("     {}".format(registro["diagnostico"]))
+
+    # Resumen por nivel: le dice al operador de un vistazo cuantos servidores
+    # quedaron en estado critico sin tener que releer la lista completa.
+    print("-" * 74)
+    conteo = {}
+    for registro in historial:
+        conteo[registro["nivel"]] = conteo.get(registro["nivel"], 0) + 1
+    resumen = ", ".join("{}: {}".format(n, c) for n, c in conteo.items())
+    print("  Total: {} diagnostico(s).  {}".format(len(historial), resumen))
+    print("=" * 74)
+
+
 def mostrar_menu():
     """Presenta las opciones disponibles al operador del HelpDesk."""
     print()
@@ -345,7 +408,8 @@ def mostrar_menu():
     print("  MENU PRINCIPAL")
     print("    1. Diagnosticar un servidor")
     print("    2. Ejecutar los casos de prueba del motor")
-    print("    3. Salir")
+    print("    3. Ver el historial de la sesion")
+    print("    4. Salir")
     print("-" * 74)
 
 
@@ -372,20 +436,26 @@ def menu_principal():
     """
     while True:
         mostrar_menu()
-        opcion = preguntar_opcion(("1", "2", "3"))
+        opcion = preguntar_opcion(("1", "2", "3", "4"))
 
         if opcion == "1":
             hechos = capturar_estado_servidor()
             print()
-            imprimir_diagnostico("Servidor ingresado por el tecnico", hechos)
+            nombre = "Servidor {}".format(len(historial) + 1)
+            resultado = imprimir_diagnostico(nombre, hechos)
+            registrar_en_historial(nombre, hechos, resultado)
 
         elif opcion == "2":
             print()
             ejecutar_casos_de_prueba()
 
+        elif opcion == "3":
+            mostrar_historial()
+
         else:
             print()
-            print("  Sesion finalizada.")
+            print("  Sesion finalizada con {} diagnostico(s) registrado(s).".format(
+                len(historial)))
             return
 
 
