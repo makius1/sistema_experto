@@ -5,6 +5,25 @@ marcada además con una etiqueta de Git (`git tag`).
 
 ---
 
+## [entrega-sesion-03] — Sesión 3: Incertidumbre y lógica difusa
+
+### Agregado
+- `fuzzificacion_conductores.py`: implementación de la función de membresía
+  triangular y fuzzificación de la experiencia de conductores en tres conjuntos
+  difusos, con selección de la categoría dominante mediante `max()`.
+- Verificación computacional de los grados calculados a mano en el taller
+  analítico (conjunto "Temperatura Agradable").
+- `03_Taller_Analitico_Grados_de_Verdad.txt`: cálculo paso a paso de μ(20) y
+  μ(25) e interpretación del grado de verdad para el motor de inferencia.
+
+### Decisiones de diseño
+- Los conjuntos difusos se declaran como datos en un diccionario, siguiendo la
+  misma separación entre conocimiento y algoritmo adoptada en la sesión 2.
+- El script reporta también las pertenencias parciales a otros conjuntos, que es
+  justamente la información que la lógica booleana descarta.
+
+---
+
 ## [entrega-sesion-02] — Sesión 2: Motor de inferencia y Modus Ponens
 
 ### Agregado

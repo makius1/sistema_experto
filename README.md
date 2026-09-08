@@ -23,6 +23,9 @@ Cada sesión incluye un **taller analítico** (documento de análisis) y un
 │   ├── 02_Taller_Analitico_Traza_Inferencia.txt
 │   ├── motor_fraude.py
 │   └── Taller-2-Traza-Inferencia.docx
+├── sesion-03-logica-difusa/    Incertidumbre y lógica difusa
+│   ├── 03_Taller_Analitico_Grados_de_Verdad.txt
+│   └── fuzzificacion_conductores.py
 ├── .gitattributes              Normalización de finales de línea y binarios
 ├── .gitignore
 ├── CHANGELOG.md                Registro de cambios por sesión
@@ -39,6 +42,7 @@ No hay dependencias externas. Con Python 3.8 o superior:
 ```bash
 python sesion-01-introduccion/diagnostico_servidor.py
 python sesion-02-motor-inferencia/motor_fraude.py
+python sesion-03-logica-difusa/fuzzificacion_conductores.py
 ```
 
 ### En GitHub Codespaces
@@ -96,6 +100,31 @@ bancario. El archivo separa físicamente tres partes:
 | 1. Motor genérico | `evaluar_condicion()`, `premisas_satisfechas()`, `aporta_hechos_nuevos()`, `motor_inferencia()` | Lógica de control: Equiparación → Resolución de conflictos → Ejecución |
 | 2. Base de fraude | `reglas_fraude` (8 reglas) | El conocimiento son datos, no código |
 | 3. Base de vehículos | `reglas_motocicleta` | El mismo motor resuelve otro dominio sin cambiar una línea |
+
+### Sesión 3 — Incertidumbre y lógica difusa
+
+Las sesiones anteriores usaban **lógica booleana**: una premisa es verdadera o
+falsa. Eso produce el problema de los límites estrictos — con la regla
+"SI ingresos > 4000 ENTONCES crédito VIP", quien gana 3.999 queda rechazado por
+un dólar. La **lógica difusa** de Lotfi Zadeh sustituye el valor booleano por un
+**grado de membresía** continuo en el intervalo [0, 1], de modo que un valor
+puede pertenecer a dos conjuntos a la vez.
+
+**Taller analítico.** Cálculo manual de los grados de verdad del conjunto
+"Temperatura Agradable" (función triangular con vértices 18, 22 y 26 °C) e
+interpretación de lo que ese decimal significa para el motor de inferencia.
+
+**Taller de laboratorio.** `fuzzificacion_conductores.py` — evaluación de la
+experiencia de conductores en una empresa de logística.
+
+| Componente | Ubicación | Función |
+|---|---|---|
+| Fuzzificación | `membresia_triangular()` | Convierte un valor real en un grado de verdad [0, 1] |
+| Conjuntos difusos | `conjuntos_experiencia` | Novato (0,0,5), Intermedio (2,5,8), Experto (5,10,20) como datos |
+| Decisión | `max()` sobre los grados | Selecciona la etiqueta lingüística de mayor grado de verdad |
+
+Evalúa a tres conductores (3, 6 y 12 años) y verifica computacionalmente los
+grados calculados a mano en el taller analítico.
 
 ---
 

@@ -1,0 +1,68 @@
+TALLER ANALÍTICO 3: CÁLCULO DE GRADOS DE VERDAD
+
+Conjunto difuso "Temperatura Agradable", función triangular con vértices:
+a = 18 °C    b = 22 °C    c = 26 °C
+
+Fórmula de la función de membresía triangular:
+μ(x) = 0                si x <= a
+μ(x) = (x - a)/(b - a)  si a < x <= b     (rampa de subida)
+μ(x) = (c - x)/(c - b)  si b < x <= c     (rampa de bajada)
+μ(x) = 0                si x > c
+
+
+PUNTO 1 - GRADO DE MEMBRESÍA PARA x = 20 °C
+
+Como 18 < 20 <= 22, el valor cae en la rampa de subida:
+
+μ(20) = (x - a) / (b - a)
+μ(20) = (20 - 18) / (22 - 18)
+μ(20) = 2 / 4
+μ(20) = 0.5
+
+Resultado: 20 °C pertenece al conjunto "Temperatura Agradable" con un grado
+de 0.5, es decir, al 50 %.
+
+
+PUNTO 2 - GRADO DE MEMBRESÍA PARA x = 25 °C
+
+Como 22 < 25 <= 26, el valor cae en la rampa de bajada:
+
+μ(25) = (c - x) / (c - b)
+μ(25) = (26 - 25) / (26 - 22)
+μ(25) = 1 / 4
+μ(25) = 0.25
+
+Resultado: 25 °C pertenece al conjunto "Temperatura Agradable" con un grado
+de 0.25, es decir, al 25 %.
+
+
+PUNTO 3 - INTERPRETACIÓN DEL RESULTADO
+
+Ese número decimal entre 0 y 1 es el GRADO DE VERDAD de la premisa. Le dice al
+motor de inferencia tres cosas:
+
+1. Que la premisa no es verdadera ni falsa, sino verdadera "en cierta medida".
+   En lógica booleana, 20 °C y 25 °C serían ambos simplemente "agradable = True"
+   si estuvieran dentro del rango, sin diferencia entre ellos. Con lógica difusa
+   el sistema distingue que 20 °C es el doble de agradable que 25 °C.
+
+2. Que la regla se dispara PARCIALMENTE. En la lógica clásica una regla dispara
+   o no dispara. Aquí la conclusión hereda la fuerza de la premisa: si la regla
+   es "SI la temperatura es agradable ENTONCES mantener el ventilador suave",
+   con μ = 0.5 esa acción se aplica con fuerza 0.5 y no al 100 %.
+
+3. Que la salida puede ser proporcional en vez de un interruptor. El aire
+   acondicionado no se enciende o apaga de golpe: regula su intensidad según el
+   grado de verdad, lo que elimina el problema de los límites estrictos y se
+   parece mucho más al criterio de una persona.
+
+
+OBSERVACIÓN ADICIONAL
+
+El vértice b = 22 °C es el único punto donde μ = 1.0, o sea la temperatura
+perfectamente agradable. A medida que el valor se aleja de 22 °C en cualquier
+dirección, la pertenencia baja de forma lineal hasta llegar a 0 en 18 °C y en
+26 °C. Este comportamiento es el que resuelve el problema planteado en el
+contexto de la sesión: un cliente que gana 3.999 USD ya no es rechazado por un
+dólar de diferencia, sino que pertenece al conjunto "Altos Ingresos" con un
+grado apenas menor que quien gana 4.000 USD.
