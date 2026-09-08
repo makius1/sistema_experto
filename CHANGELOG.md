@@ -16,11 +16,28 @@ marcada además con una etiqueta de Git (`git tag`).
 - `03_Taller_Analitico_Grados_de_Verdad.txt`: cálculo paso a paso de μ(20) y
   μ(25) e interpretación del grado de verdad para el motor de inferencia.
 
+### Mejorado
+- Se agrega la variable de incidentes como segunda entrada, lo que permite
+  mostrar la conjunción difusa.
+- Se agrega la base de 9 reglas difusas y el cálculo de la fuerza de disparo
+  mediante el mínimo de los grados.
+- Se agregan la agregación por máximo y la defuzzificación por promedio
+  ponderado, con lo que el sistema pasa de informar grados a decidir la
+  bonificación del conductor.
+
+### Corregido
+- La función de membresía devolvía 0.0 en el vértice de los conjuntos hombro
+  (a == b), de modo que un conductor con cero incidentes quedaba sin
+  bonificación siendo el mejor evaluado. Se verifica primero el vértice.
+
 ### Decisiones de diseño
-- Los conjuntos difusos se declaran como datos en un diccionario, siguiendo la
-  misma separación entre conocimiento y algoritmo adoptada en la sesión 2.
+- Los conjuntos difusos y las reglas se declaran como datos en diccionarios,
+  siguiendo la misma separación entre conocimiento y algoritmo adoptada en la
+  sesión 2.
 - El script reporta también las pertenencias parciales a otros conjuntos, que es
   justamente la información que la lógica booleana descarta.
+- Se usa el promedio ponderado en lugar del centroide de Mamdani porque produce
+  el mismo orden de resultados con una fracción del cálculo.
 
 ---
 

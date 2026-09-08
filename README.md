@@ -114,14 +114,17 @@ puede pertenecer a dos conjuntos a la vez.
 "Temperatura Agradable" (función triangular con vértices 18, 22 y 26 °C) e
 interpretación de lo que ese decimal significa para el motor de inferencia.
 
-**Taller de laboratorio.** `fuzzificacion_conductores.py` — evaluación de la
-experiencia de conductores en una empresa de logística.
+**Taller de laboratorio.** `fuzzificacion_conductores.py` — sistema difuso
+completo que decide la bonificación mensual de un conductor a partir de sus
+años de experiencia y sus incidentes del último año. Implementa las cuatro
+etapas de un sistema experto difuso:
 
-| Componente | Ubicación | Función |
+| Etapa | Ubicación | Función |
 |---|---|---|
-| Fuzzificación | `membresia_triangular()` | Convierte un valor real en un grado de verdad [0, 1] |
-| Conjuntos difusos | `conjuntos_experiencia` | Novato (0,0,5), Intermedio (2,5,8), Experto (5,10,20) como datos |
-| Decisión | `max()` sobre los grados | Selecciona la etiqueta lingüística de mayor grado de verdad |
+| 1. Fuzzificación | `membresia_triangular()`, `fuzzificar()` | Convierte un valor real en grados de verdad [0, 1] |
+| 2. Base de reglas | `reglas_difusas` | Matriz de 9 reglas declaradas como datos |
+| 3. Inferencia | `fuerza_de_disparo()`, `evaluar_reglas()` | AND difuso como mínimo de los grados; varias reglas disparan a la vez |
+| 4. Defuzzificación | `agregar_conclusiones()`, `defuzzificar()` | OR difuso como máximo, y promedio ponderado para volver a un número concreto |
 
 Evalúa a tres conductores (3, 6 y 12 años) y verifica computacionalmente los
 grados calculados a mano en el taller analítico.
