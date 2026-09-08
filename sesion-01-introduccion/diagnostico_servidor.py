@@ -11,10 +11,14 @@ Arquitectura del sistema experto implementada:
   * BASE DE REGLAS + MOTOR DE INFERENCIA -> función `diagnosticar_servidor(hechos)`
   * MÓDULO DE EXPLICACIÓN -> la regla disparada y su justificación se retornan
     junto al veredicto, de modo que el diagnóstico sea auditable.
+  * INTERFAZ DE USUARIO -> solicita al técnico las métricas que no están en la
+    memoria de trabajo, validando cada dato antes de aceptarlo.
 
 El motor usa encadenamiento hacia adelante con reglas ordenadas por prioridad:
 la primera regla que se satisface concluye y detiene la inferencia (return).
 """
+
+import sys
 
 
 # ---------------------------------------------------------------------------
@@ -134,6 +138,104 @@ def diagnosticar_servidor(hechos):
 # 3. INTERFAZ DE USUARIO / MÓDULO DE EXPLICACIÓN
 # ---------------------------------------------------------------------------
 
+
+# --- Captura de hechos: la parte de la interfaz que PIDE los datos ----------
+# Hasta ahora los hechos venían fijos en el diccionario, lo que servía para
+# probar el motor pero no para usarlo. Un sistema experto real interroga al
+# usuario, y esa interrogación debe validar cada respuesta: si el técnico
+# escribe "abc" en la temperatura, el sistema no puede caerse ni razonar sobre
+# un dato inválido, porque una base de hechos corrupta produce un diagnóstico
+# corrupto por más correctas que sean las reglas.
+
+
+class CapturaCancelada(Exception):
+    """Se lanza cuando el usuario interrumpe la captura de datos."""
+
+
+def _leer(mensaje):
+    """Lee una línea del usuario y trata la cancelación como un caso previsto.
+
+    Ctrl+C o el cierre de la entrada estándar producen excepciones que, sin
+    manejar, terminarían el programa con un volcado de error. Se convierten en
+    una excepción propia para que el programa cierre de forma ordenada.
+    """
+    try:
+        return input(mensaje)
+    except (EOFError, KeyboardInterrupt):
+        raise CapturaCancelada()
+
+
+def preguntar_numero(mensaje, minimo, maximo, unidad=""):
+    """Pide un número al usuario y no lo suelta hasta que sea válido.
+
+    Valida tres cosas por separado, con un mensaje distinto para cada una,
+    porque decirle al usuario "dato inválido" no le indica cómo corregirlo:
+      1. Que haya escrito algo.
+      2. Que sea convertible a número.
+      3. Que esté dentro del rango físicamente posible de la métrica.
+
+    Acepta la coma como separador decimal, que es lo que se usa en Colombia,
+    y la convierte al punto que espera Python.
+    """
+    while True:
+        respuesta = _leer(mensaje).strip().replace(",", ".")
+
+        if respuesta == "":
+            print("      ! Debe ingresar un valor.")
+            continue
+
+        try:
+            valor = float(respuesta)
+        except ValueError:
+            print("      ! '{}' no es un número. Ejemplo válido: 45.5".format(respuesta))
+            continue
+
+        if not (minimo <= valor <= maximo):
+            print("      ! El valor debe estar entre {} y {} {}.".format(
+                minimo, maximo, unidad).replace(" .", "."))
+            continue
+
+        return valor
+
+
+def preguntar_si_no(mensaje):
+    """Pide una respuesta booleana aceptando las formas usuales de escribirla."""
+    while True:
+        respuesta = _leer(mensaje).strip().lower()
+        if respuesta in ("s", "si", "sí"):
+            return True
+        if respuesta in ("n", "no"):
+            return False
+        print("      ! Responda 's' para sí o 'n' para no.")
+
+
+def capturar_estado_servidor():
+    """Construye la base de hechos preguntándole las métricas al técnico.
+
+    Los rangos no son arbitrarios: acotan cada métrica a lo físicamente
+    posible, de modo que un error de digitación se detecte en la captura y no
+    se propague al motor de inferencia.
+    """
+    print("\n  Ingrese las métricas del servidor (Ctrl+C para cancelar):")
+
+    return {
+        "cpu_uso": preguntar_numero(
+            "    Uso de CPU (0-100 %): ", 0, 100, "%"),
+        "memoria_libre": preguntar_numero(
+            "    Memoria libre (0-100 %): ", 0, 100, "%"),
+        "disco_libre": preguntar_numero(
+            "    Disco libre (0-100 %): ", 0, 100, "%"),
+        # El -1 es un valor centinela: representa que el servidor no responde,
+        # que es lo que la regla R3.1 interpreta como servidor inalcanzable.
+        "ping_respuesta": preguntar_numero(
+            "    Respuesta de ping en ms (-1 si no responde): ", -1, 5000, "ms"),
+        "temperatura": preguntar_numero(
+            "    Temperatura (0-150 °C): ", 0, 150, "°C"),
+        "ventilador_activo": preguntar_si_no(
+            "    ¿El ventilador está encendido? (s/n): "),
+    }
+
+
 def imprimir_diagnostico(nombre_caso, hechos):
     """Muestra los hechos de entrada y el veredicto justificado del motor."""
     nivel, regla, diagnostico, accion = diagnosticar_servidor(hechos)
@@ -223,3 +325,18 @@ if __name__ == "__main__":
     print("Cobertura verificada: R1.1, R1.2, R1.3, R1.4, R2.1, R2.2, R2.3, R2.4,")
     print("                      R3.1, R3.2 y R4 (todas las ramas del motor).")
     print("=" * 74)
+
+    # --- Diagnóstico interactivo -------------------------------------------
+    # Se comprueba que la entrada estándar sea una terminal antes de preguntar
+    # nada. Sin esta verificación, ejecutar el script de forma automatizada
+    # (por ejemplo redirigiendo la salida a un archivo) fallaría al no haber
+    # nadie que responda.
+    if not sys.stdin.isatty():
+        print("\nEntrada no interactiva: se omite el diagnóstico manual.")
+    else:
+        try:
+            if preguntar_si_no("\n¿Desea diagnosticar un servidor ahora? (s/n): "):
+                hechos = capturar_estado_servidor()
+                imprimir_diagnostico("Servidor ingresado por el técnico", hechos)
+        except CapturaCancelada:
+            print("\n\nCaptura cancelada por el usuario.")
