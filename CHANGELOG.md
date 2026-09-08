@@ -56,6 +56,13 @@ marcada además con una etiqueta de Git (`git tag`).
 - `Taller-2-Traza-Inferencia.docx`: traza manual ciclo por ciclo, con análisis
   de la refractariedad y de la granularidad de los ciclos.
 
+### Mejorado
+- Se agrega el motor de encadenamiento hacia atrás, que parte de una meta y
+  pregunta únicamente los hechos que necesita para demostrarla, con árbol de
+  objetivos, backtracking y protección contra reglas circulares.
+- La fuente de los hechos se pasa como parámetro, de modo que el mismo motor
+  sirve para un expediente cargado o para un interrogatorio interactivo.
+
 ### Decisiones de diseño
 - El evaluador de condiciones se amplió para soportar operadores relacionales
   (`{"monto": (">", 5000)}`), porque el motor de referencia solo comparaba por
@@ -79,6 +86,19 @@ marcada además con una etiqueta de Git (`git tag`).
 - `Taller-1-Logica-Proposicional.docx`: formalización del manual de créditos en
   reglas de producción, con tabla de decisión y análisis de la ambigüedad de la
   cláusula de excepción.
+
+### Mejorado
+- Se agrega la captura de hechos con validación en tres pasos, que completa el
+  módulo de interfaz de usuario que exigía la arquitectura.
+- Se agrega el menú de operación, con el que el técnico decide qué hacer y
+  cuántas veces en lugar de ejecutar siempre la misma demostración.
+- Se agrega el historial de la sesión, que conserva cada diagnóstico con su
+  hora, sus hechos y la regla disparada, con un resumen por nivel.
+
+### Corregido
+- Los casos de prueba modificaban el diccionario de hechos, de modo que una
+  segunda ejecución partía de los valores que dejó la primera. Se restaura el
+  estado inicial al comienzo de cada corrida.
 
 ---
 

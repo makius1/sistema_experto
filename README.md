@@ -72,15 +72,18 @@ identificando los hechos que el sistema debe solicitar y resolviendo la
 ambigüedad de la cláusula de excepción.
 
 **Taller de laboratorio.** `diagnostico_servidor.py` — sistema de diagnóstico
-para el HelpDesk de una empresa tecnológica.
+para el HelpDesk de una empresa tecnológica, con los tres módulos de la
+arquitectura implementados:
 
 | Módulo | Ubicación | Función |
 |---|---|---|
 | Base de Hechos | `servidor_estado` | Memoria de trabajo: 6 métricas del servidor |
 | Base de Reglas + Motor | `diagnosticar_servidor()` | Reglas anidadas en dos niveles: el externo decide la gravedad, el interno la causa |
-| Explicación | `imprimir_diagnostico()` | Retorna el ID de la regla disparada: trazabilidad de la decisión |
+| Interfaz de Usuario | `capturar_estado_servidor()`, `menu_principal()` | Solicita las métricas al técnico validando cada dato, y ofrece un menú de operación |
+| Explicación | `imprimir_diagnostico()`, `mostrar_historial()` | Retorna el ID de la regla disparada y conserva el registro de la sesión |
 
-Ejecuta 11 casos que cubren todas las ramas del motor.
+Ejecuta 11 casos que cubren todas las ramas del motor. Con terminal muestra el
+menú; sin terminal ejecuta los casos de prueba.
 
 ### Sesión 2 — Motor de inferencia y Modus Ponens
 
@@ -100,6 +103,11 @@ bancario. El archivo separa físicamente tres partes:
 | 1. Motor genérico | `evaluar_condicion()`, `premisas_satisfechas()`, `aporta_hechos_nuevos()`, `motor_inferencia()` | Lógica de control: Equiparación → Resolución de conflictos → Ejecución |
 | 2. Base de fraude | `reglas_fraude` (8 reglas) | El conocimiento son datos, no código |
 | 3. Base de vehículos | `reglas_motocicleta` | El mismo motor resuelve otro dominio sin cambiar una línea |
+| 4. Motor hacia atrás | `demostrar()`, `consultar_meta()` | Estrategia dirigida por objetivos: parte de una meta y pregunta solo los hechos que necesita |
+
+Las dos estrategias sobre la misma base de reglas: el encadenamiento hacia
+adelante recibe las seis variables de la transacción y deduce todo lo posible;
+el encadenamiento hacia atrás responde la misma pregunta consultando tres.
 
 ### Sesión 3 — Incertidumbre y lógica difusa
 
