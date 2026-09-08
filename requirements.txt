@@ -1,0 +1,15 @@
+# Dependencias del proyecto
+# ---------------------------------------------------------------------------
+# Los prototipos de las sesiones 1 y 2 usan ÚNICAMENTE la librería estándar de
+# Python: diccionarios, listas, condicionales y ciclos. No requieren paquetes
+# externos, y esa es una decisión de diseño: el motor de inferencia se
+# implementa desde cero para comprender su funcionamiento interno.
+#
+# Este archivo se mantiene en el repositorio porque:
+#   1. Documenta explícitamente que no hay dependencias ocultas.
+#   2. El devcontainer lo ejecuta al crear el entorno (postCreateCommand).
+#   3. Cuando una sesión posterior requiera una librería, se agrega aquí con
+#      su versión fijada y el entorno queda reproducible para cualquiera.
+#
+# Ejemplo de cómo se agregaría una dependencia futura:
+# experta==1.9.4

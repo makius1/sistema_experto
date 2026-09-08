@@ -1,0 +1,8 @@
+# Normaliza los finales de línea: Windows en local, Linux en el Codespace.
+# Sin esto, Git marcaría archivos completos como modificados al cambiar de entorno.
+* text=auto eol=lf
+
+# Los documentos de Word son binarios: Git los versiona, pero no intenta
+# calcular diferencias línea por línea ni fusionarlos automáticamente.
+*.docx binary
+*.pdf   binary

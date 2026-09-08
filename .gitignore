@@ -1,0 +1,40 @@
+# ---------------------------------------------------------------------------
+# Python
+# ---------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+
+# Entornos virtuales locales (el entorno oficial es .devcontainer/)
+.venv/
+venv/
+env/
+
+# ---------------------------------------------------------------------------
+# Archivos temporales de Microsoft Word
+# ---------------------------------------------------------------------------
+~$*.docx
+~$*.doc
+*.tmp
+
+# ---------------------------------------------------------------------------
+# Material de consulta del docente
+# ---------------------------------------------------------------------------
+# Los PDF de las sesiones son material preparado por el docente y este
+# repositorio es público, por lo que no se redistribuyen aquí. Se conservan
+# localmente dentro de consulta/ para trabajo personal.
+consulta/*.pdf
+
+# ---------------------------------------------------------------------------
+# Sistema operativo y editores
+# ---------------------------------------------------------------------------
+Thumbs.db
+desktop.ini
+.DS_Store
+.idea/
+*.swp
