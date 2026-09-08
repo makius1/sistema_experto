@@ -20,6 +20,9 @@ puede pertenecer al conjunto "Intermedio" en 0.67 y al conjunto "Experto" en
 Variables de entrada del sistema:
     Experiencia (años)   -> Novato (0,0,5)  Intermedio (2,5,8)  Experto (5,10,20)
     Incidentes (al año)  -> Pocos (0,0,3)   Moderados (2,4,6)   Muchos (5,8,12)
+
+Variable de salida:
+    Bonificación (%)     -> Baja, Media, Alta
 """
 
 
@@ -100,8 +103,88 @@ def imprimir_grados(titulo, grados):
         print("    - {:<11} {:6.2f} %  {}".format(etiqueta, grado * 100, barra))
 
 
+
 # ---------------------------------------------------------------------------
-# 3. EJECUCIÓN
+# 3. VARIABLE LINGÜÍSTICA DE SALIDA
+# ---------------------------------------------------------------------------
+# La bonificación mensual, expresada como porcentaje del salario base. Es lo
+# que el sistema debe decidir a partir de las dos variables de entrada.
+
+etiquetas_bonificacion = ["BAJA", "MEDIA", "ALTA"]
+
+
+# ---------------------------------------------------------------------------
+# 4. BASE DE REGLAS DIFUSAS
+# ---------------------------------------------------------------------------
+# Matriz de decisión que cubre las 9 combinaciones posibles:
+#
+#                  POCOS      MODERADOS    MUCHOS
+#   NOVATO         BAJA       BAJA         BAJA
+#   INTERMEDIO     MEDIA      BAJA         BAJA
+#   EXPERTO        ALTA       MEDIA        BAJA
+#
+# Las reglas se declaran como datos, igual que en la sesión 2. La diferencia
+# es que aquí las premisas no son verdaderas o falsas: cada una aporta un
+# grado, y la regla dispara con una FUERZA proporcional a ese grado.
+
+reglas_difusas = [
+    {"id": "R1", "si": {"experiencia": "NOVATO",     "incidentes": "POCOS"},     "entonces": "BAJA"},
+    {"id": "R2", "si": {"experiencia": "NOVATO",     "incidentes": "MODERADOS"}, "entonces": "BAJA"},
+    {"id": "R3", "si": {"experiencia": "NOVATO",     "incidentes": "MUCHOS"},    "entonces": "BAJA"},
+    {"id": "R4", "si": {"experiencia": "INTERMEDIO", "incidentes": "POCOS"},     "entonces": "MEDIA"},
+    {"id": "R5", "si": {"experiencia": "INTERMEDIO", "incidentes": "MODERADOS"}, "entonces": "BAJA"},
+    {"id": "R6", "si": {"experiencia": "INTERMEDIO", "incidentes": "MUCHOS"},    "entonces": "BAJA"},
+    {"id": "R7", "si": {"experiencia": "EXPERTO",    "incidentes": "POCOS"},     "entonces": "ALTA"},
+    {"id": "R8", "si": {"experiencia": "EXPERTO",    "incidentes": "MODERADOS"}, "entonces": "MEDIA"},
+    {"id": "R9", "si": {"experiencia": "EXPERTO",    "incidentes": "MUCHOS"},    "entonces": "BAJA"},
+]
+
+
+def fuerza_de_disparo(regla, grados):
+    """Calcula con qué fuerza dispara una regla, usando el AND difuso.
+
+    En lógica booleana, "A Y B" es verdadero solo si ambas lo son. En lógica
+    difusa la conjunción se calcula como el MÍNIMO de los grados:
+
+        fuerza = min(μ(premisa_1), μ(premisa_2), ...)
+
+    El criterio del mínimo se usa porque una conjunción no puede ser más
+    verdadera que su premisa más débil: si el conductor es EXPERTO en 0.8 pero
+    tiene POCOS incidentes solo en 0.2, la regla que exige ambas cosas dispara
+    con fuerza 0.2. Es el equivalente difuso de "la cadena se rompe por el
+    eslabón más débil".
+
+    Nótese que una fuerza de 0.0 significa que la regla no aplica a este caso,
+    que es el equivalente difuso de que la premisa sea falsa.
+    """
+    return min(
+        grados[variable][etiqueta]
+        for variable, etiqueta in regla["si"].items()
+    )
+
+
+def evaluar_reglas(grados):
+    """Evalúa toda la base de reglas y retorna las que disparan.
+
+    A diferencia del motor de la sesión 2, aquí NO se elige una sola regla
+    ganadora: en lógica difusa varias reglas pueden disparar simultáneamente
+    con fuerzas distintas, y todas contribuyen al resultado final.
+    """
+    disparos = []
+    for regla in reglas_difusas:
+        fuerza = fuerza_de_disparo(regla, grados)
+        if fuerza > 0:
+            disparos.append({
+                "id": regla["id"],
+                "fuerza": fuerza,
+                "conclusion": regla["entonces"],
+                "premisas": regla["si"],
+            })
+    return disparos
+
+
+# ---------------------------------------------------------------------------
+# 5. EJECUCIÓN
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
@@ -137,6 +220,18 @@ if __name__ == "__main__":
         if ambiguos:
             print("     También pertenece parcialmente a: {}".format(
                 ", ".join(ambiguos)))
+
+        # Inferencia difusa: se evalúa toda la base de reglas. Varias pueden
+        # disparar a la vez, cada una con su propia fuerza.
+        grados = {"experiencia": grados_exp, "incidentes": grados_inc}
+        disparos = evaluar_reglas(grados)
+
+        print("  Reglas que disparan:")
+        for d in disparos:
+            print("    {} fuerza {:.2f}  (SI experiencia es {} Y incidentes es {} ENTONCES bonificación {})".format(
+                d["id"], d["fuerza"],
+                d["premisas"]["experiencia"], d["premisas"]["incidentes"],
+                d["conclusion"]))
 
     print("\n" + "=" * 66)
 
