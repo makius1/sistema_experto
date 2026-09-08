@@ -110,7 +110,15 @@ def imprimir_grados(titulo, grados):
 # La bonificación mensual, expresada como porcentaje del salario base. Es lo
 # que el sistema debe decidir a partir de las dos variables de entrada.
 
-etiquetas_bonificacion = ["BAJA", "MEDIA", "ALTA"]
+# Cada etiqueta de salida tiene asociado un valor representativo (su centro).
+# Se usan valores puntuales en lugar de triángulos porque la defuzzificación
+# por promedio ponderado solo necesita el punto donde cada conjunto alcanza su
+# máximo, lo que simplifica el cálculo sin cambiar el resultado.
+centros_bonificacion = {
+    "BAJA":  5.0,    # 5 % del salario base
+    "MEDIA": 12.0,   # 12 %
+    "ALTA":  20.0,   # 20 %
+}
 
 
 # ---------------------------------------------------------------------------
@@ -184,7 +192,82 @@ def evaluar_reglas(grados):
 
 
 # ---------------------------------------------------------------------------
-# 5. EJECUCIÓN
+# 5. AGREGACIÓN Y DEFUZZIFICACIÓN
+# ---------------------------------------------------------------------------
+
+def agregar_conclusiones(disparos):
+    """Combina las reglas que llegan a la misma conclusión usando el OR difuso.
+
+    Varias reglas pueden concluir lo mismo con fuerzas distintas. Así como la
+    conjunción se resuelve con el mínimo, la DISYUNCIÓN se resuelve con el
+    MÁXIMO: si dos caminos distintos justifican una bonificación BAJA, uno con
+    fuerza 0.3 y otro con 0.7, la conclusión queda respaldada con 0.7. Se toma
+    el máximo y no la suma porque un grado de verdad nunca puede superar 1.0.
+    """
+    agregado = {}
+    for disparo in disparos:
+        etiqueta = disparo["conclusion"]
+        fuerza_previa = agregado.get(etiqueta, 0.0)
+        agregado[etiqueta] = max(fuerza_previa, disparo["fuerza"])
+    return agregado
+
+
+def defuzzificar(agregado):
+    """Convierte los grados de salida en un único número concreto.
+
+    Es la operación inversa de la fuzzificación y la etapa que faltaba para
+    que el sistema DECIDA en vez de solo informar. Se aplica el método del
+    promedio ponderado:
+
+        salida = Σ (fuerza_i × centro_i) / Σ fuerza_i
+
+    Cada conclusión "jala" el resultado hacia su propio centro con una fuerza
+    igual a su grado de verdad. Una conclusión ALTA con fuerza 0.8 pesa cuatro
+    veces más que una MEDIA con fuerza 0.2.
+
+    Este método es la versión simplificada del centroide de Mamdani: en lugar
+    de calcular el área bajo los conjuntos recortados, usa el punto máximo de
+    cada uno. Da el mismo orden de resultados con una fracción del cálculo, y
+    es el que se usa en control industrial por su bajo costo computacional.
+
+    Si ninguna regla dispara retorna 0.0, que es el caso en que el sistema no
+    tiene conocimiento aplicable a esa combinación de entradas.
+    """
+    suma_fuerzas = sum(agregado.values())
+    if suma_fuerzas == 0:
+        return 0.0
+
+    suma_ponderada = sum(
+        fuerza * centros_bonificacion[etiqueta]
+        for etiqueta, fuerza in agregado.items()
+    )
+    return suma_ponderada / suma_fuerzas
+
+
+def evaluar_conductor(anios, incidentes):
+    """Ejecuta el sistema difuso completo sobre un conductor.
+
+    Encadena las cuatro etapas: fuzzificación de las entradas, evaluación de
+    las reglas, agregación de las conclusiones y defuzzificación de la salida.
+    """
+    grados = {
+        "experiencia": fuzzificar(anios, conjuntos_experiencia),
+        "incidentes": fuzzificar(incidentes, conjuntos_incidentes),
+    }
+    disparos = evaluar_reglas(grados)
+    agregado = agregar_conclusiones(disparos)
+    bonificacion = defuzzificar(agregado)
+
+    return {
+        "grados": grados,
+        "disparos": disparos,
+        "agregado": agregado,
+        "bonificacion": bonificacion,
+    }
+
+
+# ---------------------------------------------------------------------------
+# 6. EJECUCIÓN
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
@@ -232,6 +315,16 @@ if __name__ == "__main__":
                 d["id"], d["fuerza"],
                 d["premisas"]["experiencia"], d["premisas"]["incidentes"],
                 d["conclusion"]))
+
+        # Agregación: las reglas con la misma conclusión se combinan con el
+        # máximo, y el resultado se convierte en un número concreto.
+        agregado = agregar_conclusiones(disparos)
+        bonificacion = defuzzificar(agregado)
+
+        print("  Conclusiones agregadas: {}".format(
+            ", ".join("{} = {:.2f}".format(e, f) for e, f in agregado.items())))
+        print("  >> BONIFICACIÓN ASIGNADA: {:.2f} % del salario base".format(
+            bonificacion))
 
     print("\n" + "=" * 66)
 
