@@ -1,0 +1,47 @@
+TALLER ANALÍTICO 1: LÓGICA PROPOSICIONAL
+
+Texto fuente:
+"Un cliente es elegible para el crédito Hipotecario Plus si sus ingresos anuales
+superan los 50.000 USD y tiene un historial crediticio 'Excelente'. Sin embargo,
+si el cliente tiene deudas activas superiores a 10.000 USD, no será elegible bajo
+ninguna circunstancia, a menos que presente un avalista."
+
+
+HECHOS O VARIABLES QUE EL SISTEMA DEBE SOLICITAR AL USUARIO:
+
+- Ingresos anuales (numérico, en USD).
+- Historial crediticio (Excelente / Bueno / Regular / Malo).
+- Valor de las deudas activas (numérico, en USD).
+- Si tiene o no avalista (verdadero / falso).
+
+
+REGLAS DE PRODUCCIÓN:
+
+Regla 1 - Rechazo absoluto (prioridad alta):
+SI las deudas activas son superiores a 10.000 USD
+Y NO tiene avalista
+ENTONCES no es elegible para el crédito Hipotecario Plus.
+
+Regla 2 - Aprobación:
+SI los ingresos anuales son superiores a 50.000 USD
+Y el historial crediticio es "Excelente"
+ENTONCES es elegible para el crédito Hipotecario Plus.
+
+Regla 3 - Por defecto:
+SI no se cumple la Regla 1
+Y no se cumple la Regla 2
+ENTONCES pasa a revisión manual.
+
+
+OBSERVACIONES:
+
+1. La Regla 1 se evalúa primero porque el texto dice "no será elegible bajo
+   ninguna circunstancia": esa cláusula tiene precedencia sobre la de aprobación.
+
+2. La expresión "a menos que presente un avalista" es la excepción que desactiva
+   el bloqueo. El avalista NO otorga el crédito por sí solo: solo neutraliza la
+   deuda, y el cliente todavía debe cumplir ingresos e historial.
+
+3. Fórmula global de elegibilidad:
+   Elegible = (Ingresos > 50.000 Y Historial = "Excelente")
+              Y NO (Deuda > 10.000 Y NO tiene avalista)

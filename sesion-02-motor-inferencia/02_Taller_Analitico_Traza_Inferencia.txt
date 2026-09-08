@@ -1,0 +1,59 @@
+TALLER ANALÍTICO 2: TRAZA DE INFERENCIA
+
+Base de conocimientos:
+R1: SI [Tiene Motor] Y [Tiene Dos Ruedas]    ENTONCES [Es Motocicleta]
+R2: SI [Es Motocicleta]                      ENTONCES [Requiere Casco]
+R3: SI [Requiere Casco] Y [Es Menor de Edad] ENTONCES [Permiso Denegado]
+
+Hechos iniciales en memoria:
+{Tiene Motor = True, Tiene Dos Ruedas = True, Es Menor de Edad = True}
+
+
+TRAZA DEL MOTOR:
+
+Ciclo 1:
+- Regla que dispara: R1 (sus dos premisas están en la memoria).
+- R2 y R3 no aplican todavía porque "Es Motocicleta" y "Requiere Casco" no existen.
+- Nuevo hecho: Es Motocicleta = True.
+- Memoria: {Tiene Motor, Tiene Dos Ruedas, Es Menor de Edad, Es Motocicleta}
+
+Ciclo 2:
+- Regla que dispara: R2 (ya existe "Es Motocicleta", deducido en el ciclo 1).
+- Nuevo hecho: Requiere Casco = True.
+- Memoria: la anterior + Requiere Casco
+
+Ciclo 3:
+- Regla que dispara: R3 (ya existe "Requiere Casco" y "Es Menor de Edad" estaba
+  desde el inicio).
+- Nuevo hecho: Permiso Denegado = True.
+- Memoria: la anterior + Permiso Denegado
+
+Ciclo 4:
+- Las tres reglas cumplen sus premisas, pero ninguna aporta un hecho nuevo.
+- El motor se detiene.
+
+
+RESULTADO:
+
+Cadena de inferencia: R1 -> R2 -> R3
+Ciclos ejecutados: 4 (3 disparos + 1 de verificación)
+
+Memoria final:
+{Tiene Motor = True, Tiene Dos Ruedas = True, Es Menor de Edad = True,
+ Es Motocicleta = True, Requiere Casco = True, Permiso Denegado = True}
+
+Conclusión: el permiso es denegado.
+
+
+OBSERVACIONES:
+
+1. Ninguna regla relaciona directamente los hechos iniciales con la conclusión
+   final. "Permiso Denegado" surge de encadenar tres reglas independientes: eso
+   es el encadenamiento hacia adelante.
+
+2. Cada disparo es una aplicación de Modus Ponens: si P -> Q y P es verdadero,
+   entonces Q se agrega a la memoria como hecho verdadero.
+
+3. En el ciclo 4 el motor no se detiene porque las reglas fallen, sino porque ya
+   no producen hechos nuevos. A eso se le llama quiescencia, y es la condición
+   de parada del ciclo.

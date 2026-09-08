@@ -16,9 +16,11 @@ Cada sesión incluye un **taller analítico** (documento de análisis) y un
 │   └── devcontainer.json
 ├── consulta/                   Material de referencia (no versionado)
 ├── sesion-01-introduccion/     Arquitectura de un sistema experto
+│   ├── 01_Taller_Analitico_Logica_Proposicional.txt
 │   ├── diagnostico_servidor.py
 │   └── Taller-1-Logica-Proposicional.docx
 ├── sesion-02-motor-inferencia/ Motor de inferencia y Modus Ponens
+│   ├── 02_Taller_Analitico_Traza_Inferencia.txt
 │   ├── motor_fraude.py
 │   └── Taller-2-Traza-Inferencia.docx
 ├── .gitattributes              Normalización de finales de línea y binarios
