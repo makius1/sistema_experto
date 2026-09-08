@@ -35,6 +35,12 @@ servidor_estado = {
     "disco_libre": 40.0,        # % de espacio libre en disco
 }
 
+# Copia de referencia de los valores iniciales. Se guarda porque el menú
+# permite ejecutar los casos de prueba varias veces en una misma sesión, y
+# esos casos van modificando el diccionario: sin restaurarlo, la segunda
+# ejecución partiría de los valores que dejó la primera.
+ESTADO_INICIAL = dict(servidor_estado)
+
 
 # ---------------------------------------------------------------------------
 # 2. BASE DE REGLAS Y MOTOR DE INFERENCIA
@@ -260,9 +266,14 @@ def imprimir_diagnostico(nombre_caso, hechos):
 # Se modifican los valores del diccionario original para comprobar que el
 # motor recorre caminos lógicos distintos según los hechos que recibe.
 
-if __name__ == "__main__":
+def ejecutar_casos_de_prueba():
+    """Recorre los 11 casos que cubren todas las ramas del motor.
 
-    print("\nSISTEMA EXPERTO DE DIAGNÓSTICO IT - HELPDESK\n")
+    Se restauran primero los valores iniciales para que la ejecucion sea
+    repetible: el menu permite lanzar los casos varias veces y cada uno va
+    modificando el diccionario de hechos.
+    """
+    servidor_estado.update(ESTADO_INICIAL)
 
     # --- Caso 1: estado inicial (rama R4 - fallback) ---
     imprimir_diagnostico("Estado inicial del servidor", servidor_estado)
@@ -326,17 +337,72 @@ if __name__ == "__main__":
     print("                      R3.1, R3.2 y R4 (todas las ramas del motor).")
     print("=" * 74)
 
-    # --- Diagnóstico interactivo -------------------------------------------
-    # Se comprueba que la entrada estándar sea una terminal antes de preguntar
-    # nada. Sin esta verificación, ejecutar el script de forma automatizada
-    # (por ejemplo redirigiendo la salida a un archivo) fallaría al no haber
-    # nadie que responda.
+
+def mostrar_menu():
+    """Presenta las opciones disponibles al operador del HelpDesk."""
+    print()
+    print("-" * 74)
+    print("  MENU PRINCIPAL")
+    print("    1. Diagnosticar un servidor")
+    print("    2. Ejecutar los casos de prueba del motor")
+    print("    3. Salir")
+    print("-" * 74)
+
+
+def preguntar_opcion(validas):
+    """Pide una opcion del menu y solo acepta las que existen.
+
+    Sigue el mismo criterio que la captura de metricas: no se avanza con un
+    dato invalido, y el mensaje de error dice cuales son las opciones reales
+    en lugar de limitarse a rechazar la entrada.
+    """
+    while True:
+        opcion = _leer("  Seleccione una opcion: ").strip()
+        if opcion in validas:
+            return opcion
+        print("      ! Opcion no valida. Escriba {}.".format(", ".join(validas)))
+
+
+def menu_principal():
+    """Ciclo de operacion del sistema.
+
+    El programa deja de ser una demostracion que corre una sola vez y pasa a
+    ser una herramienta: el operador decide que hacer y cuantas veces, y el
+    ciclo solo termina cuando el lo pide.
+    """
+    while True:
+        mostrar_menu()
+        opcion = preguntar_opcion(("1", "2", "3"))
+
+        if opcion == "1":
+            hechos = capturar_estado_servidor()
+            print()
+            imprimir_diagnostico("Servidor ingresado por el tecnico", hechos)
+
+        elif opcion == "2":
+            print()
+            ejecutar_casos_de_prueba()
+
+        else:
+            print()
+            print("  Sesion finalizada.")
+            return
+
+
+if __name__ == "__main__":
+
+    print()
+    print("SISTEMA EXPERTO DE DIAGNOSTICO IT - HELPDESK")
+
+    # Sin terminal no hay quien responda el menu, asi que se ejecutan los
+    # casos de prueba, que es el comportamiento util en ese contexto.
     if not sys.stdin.isatty():
-        print("\nEntrada no interactiva: se omite el diagnóstico manual.")
+        print("Entrada no interactiva: se ejecutan los casos de prueba.")
+        print()
+        ejecutar_casos_de_prueba()
     else:
         try:
-            if preguntar_si_no("\n¿Desea diagnosticar un servidor ahora? (s/n): "):
-                hechos = capturar_estado_servidor()
-                imprimir_diagnostico("Servidor ingresado por el técnico", hechos)
+            menu_principal()
         except CapturaCancelada:
-            print("\n\nCaptura cancelada por el usuario.")
+            print()
+            print("  Sesion cancelada por el usuario.")
