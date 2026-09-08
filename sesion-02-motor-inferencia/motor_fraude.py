@@ -286,6 +286,156 @@ reglas_motocicleta = [
 ]
 
 
+
+# ===========================================================================
+# PARTE 4. MOTOR DE ENCADENAMIENTO HACIA ATRÁS (dirigido por objetivos)
+# ===========================================================================
+# El motor de la PARTE 1 es DIRIGIDO POR DATOS: recibe todos los hechos y
+# deduce todo lo deducible. Eso funciona cuando los datos ya están disponibles,
+# pero es un desperdicio cuando obtenerlos cuesta: pedirle seis datos al
+# cliente para responder una sola pregunta es una mala experiencia y, en un
+# sistema médico o financiero, cada dato puede costar dinero o tiempo.
+#
+# El encadenamiento hacia atrás invierte el razonamiento: parte de una META
+# ("¿hay que bloquear la tarjeta?"), busca qué reglas la concluyen y verifica
+# sus premisas. Si una premisa es a su vez deducible, la persigue de forma
+# recursiva; si es un dato primitivo, lo pregunta. Solo pregunta lo que la
+# meta realmente necesita.
+
+
+def hechos_derivables(base_reglas):
+    """Devuelve las claves que alguna regla puede concluir.
+
+    Es lo que le permite al motor distinguir dos tipos de premisa: las que
+    puede DEDUCIR aplicando reglas y las que debe PREGUNTAR porque ninguna
+    regla las produce. Esa distinción es la que evita preguntar por hechos
+    que el propio sistema podría inferir.
+    """
+    derivables = set()
+    for regla in base_reglas:
+        derivables.update(regla["conclusion"].keys())
+    return derivables
+
+
+def consultor_de_expediente(expediente, consultas):
+    """Crea la función que suministra los hechos primitivos.
+
+    La fuente de los hechos se pasa como parámetro y no se escribe dentro del
+    motor: aquí los datos salen de un expediente ya cargado, pero sustituyendo
+    esta función por una que use input() el mismo motor se convierte en un
+    interrogador interactivo, sin tocar la lógica de razonamiento.
+
+    La lista `consultas` registra qué se preguntó, que es lo que permite medir
+    cuántos datos necesitó realmente el sistema.
+    """
+    def obtener(clave):
+        consultas.append(clave)
+        return expediente.get(clave)
+    return obtener
+
+
+def demostrar(meta, memoria, base_reglas, obtener_hecho, derivables,
+              traza, nivel=0, en_proceso=None):
+    """Intenta demostrar una meta y retorna True si lo consigue.
+
+    Recorre el árbol de objetivos: para probar la meta busca las reglas que la
+    concluyen y, por cada una, verifica sus premisas. Una premisa deducible se
+    persigue de forma recursiva y una primitiva se pregunta.
+
+    Si una regla falla, prueba con la siguiente: eso es BACKTRACKING, y es la
+    razón por la que el motor puede llegar a la misma conclusión por caminos
+    distintos.
+    """
+    if en_proceso is None:
+        en_proceso = set()
+
+    sangria = "    " + "  " * nivel
+
+    # La meta ya está en la memoria: no hay nada que demostrar.
+    if meta in memoria:
+        traza.append("{}{} ya se conoce = {}".format(sangria, meta, memoria[meta]))
+        return bool(memoria[meta])
+
+    # Protección contra reglas circulares: si la meta ya se está persiguiendo
+    # más arriba en el árbol, seguir sería un ciclo infinito.
+    if meta in en_proceso:
+        traza.append("{}se descarta {} para evitar un ciclo".format(sangria, meta))
+        return False
+    en_proceso.add(meta)
+
+    reglas_meta = [r for r in base_reglas if meta in r["conclusion"]]
+
+    # Ninguna regla concluye la meta: es un hecho primitivo, hay que preguntarlo.
+    if not reglas_meta:
+        memoria[meta] = obtener_hecho(meta)
+        traza.append("{}se pregunta {} = {}".format(sangria, meta, memoria[meta]))
+        en_proceso.discard(meta)
+        return bool(memoria[meta])
+
+    for regla in reglas_meta:
+        traza.append("{}para probar {} se intenta {}".format(sangria, meta, regla["id"]))
+        premisas_ok = True
+
+        for clave, criterio in regla["condiciones"].items():
+            if clave not in memoria:
+                if clave in derivables:
+                    # Premisa deducible: se convierte en una submeta.
+                    demostrar(clave, memoria, base_reglas, obtener_hecho,
+                              derivables, traza, nivel + 1, en_proceso)
+                else:
+                    # Premisa primitiva: se le pregunta a la fuente de datos.
+                    memoria[clave] = obtener_hecho(clave)
+                    traza.append("{}  se pregunta {} = {}".format(
+                        sangria, clave, memoria[clave]))
+
+            if clave not in memoria or not evaluar_condicion(memoria, clave, criterio):
+                traza.append("{}  {} no cumple: {} falla".format(
+                    sangria, clave, regla["id"]))
+                premisas_ok = False
+                break
+
+        if premisas_ok:
+            memoria.update(regla["conclusion"])
+            traza.append("{}{} demuestra {}".format(sangria, regla["id"], meta))
+            en_proceso.discard(meta)
+            return True
+
+    traza.append("{}ninguna regla demuestra {}".format(sangria, meta))
+    en_proceso.discard(meta)
+    return False
+
+
+def consultar_meta(meta, expediente, base_reglas):
+    """Ejecuta el motor hacia atrás sobre una meta y presenta la explicación.
+
+    La memoria arranca VACÍA a propósito: el sistema no recibe ningún hecho de
+    entrada y debe averiguar por sí mismo cuáles necesita.
+    """
+    memoria = {}
+    consultas = []
+    traza = []
+    derivables = hechos_derivables(base_reglas)
+    obtener = consultor_de_expediente(expediente, consultas)
+
+    demostrado = demostrar(meta, memoria, base_reglas, obtener, derivables, traza)
+
+    print("=" * 78)
+    print("CONSULTA: ¿{}?".format(meta))
+    print("-" * 78)
+    print("  --- Árbol de objetivos ---")
+    for linea in traza:
+        print(linea)
+    print("  --- Resultado ---")
+    print("  Respuesta         : {}".format("SÍ" if demostrado else "NO"))
+    print("  Datos consultados : {} de {}  ->  {}".format(
+        len(consultas), len(expediente), ", ".join(consultas)))
+    no_consultados = [c for c in expediente if c not in consultas]
+    print("  Nunca se preguntó : {}".format(
+        ", ".join(no_consultados) if no_consultados else "nada, se necesitó todo"))
+    print()
+    return demostrado
+
+
 # ===========================================================================
 # EJECUCIÓN
 # ===========================================================================
@@ -348,6 +498,49 @@ if __name__ == "__main__":
     })
 
     # --- Verificación de la traza del Taller Analítico 2 ----------------
+    # -----------------------------------------------------------------------
+    # ENCADENAMIENTO HACIA ATRÁS: la misma base de reglas, otra estrategia
+    # -----------------------------------------------------------------------
+    # El motor arranca sin ningún hecho y debe descubrir cuáles necesita para
+    # responder la pregunta. Compárese con los casos de arriba, donde se le
+    # entregaban las seis variables de la transacción antes de razonar.
+
+    print()
+    print("MOTOR DE ENCADENAMIENTO HACIA ATRÁS - CONSULTAS DIRIGIDAS POR OBJETIVOS")
+    print()
+
+    # Caso 1: la meta se demuestra por el camino directo del monto.
+    consultar_meta("bloquear_tarjeta", {
+        "monto": 8500,
+        "pais_extranjero": True,
+        "hora": 3,
+        "dispositivo_conocido": False,
+        "intentos_fallidos": 1,
+        "cliente_viajando": False,
+    }, reglas_fraude)
+
+    # Caso 2: el monto es bajo, de modo que la primera regla falla y el motor
+    # retrocede para intentar los otros caminos (backtracking).
+    consultar_meta("bloquear_tarjeta", {
+        "monto": 200,
+        "pais_extranjero": False,
+        "hora": 2,
+        "dispositivo_conocido": False,
+        "intentos_fallidos": 4,
+        "cliente_viajando": False,
+    }, reglas_fraude)
+
+    # Caso 3: transacción legítima. La meta no se puede demostrar y el motor
+    # lo dice explícitamente en lugar de quedarse callado.
+    consultar_meta("bloquear_tarjeta", {
+        "monto": 120,
+        "pais_extranjero": False,
+        "hora": 13,
+        "dispositivo_conocido": True,
+        "intentos_fallidos": 0,
+        "cliente_viajando": False,
+    }, reglas_fraude)
+
     print("=" * 78)
     print("VERIFICACIÓN DEL TALLER ANALÍTICO 2: base de conocimientos de la motocicleta")
     print("(el mismo motor, otra base de conocimientos)")
