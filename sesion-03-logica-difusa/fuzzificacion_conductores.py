@@ -40,12 +40,22 @@ def membresia_triangular(x, a, b, c):
         μ(x) = (c - x)/(c - b)  si b < x < c           (rampa de bajada)
 
     El vértice b es el punto de pertenencia total (μ = 1.0).
+
+    El caso x == b se evalúa de primero porque cuando el triángulo es en
+    realidad un hombro (a == b, como en "Pocos incidentes" con vértices
+    (0, 0, 3)), la condición x <= a atrapaba el valor del vértice y devolvía
+    0.0 en lugar de 1.0. Eso hacía que un conductor con 0 incidentes quedara
+    sin pertenencia a ningún conjunto y, por lo tanto, sin bonificación, que
+    es justamente lo contrario de lo que debería recibir. Verificar primero
+    el vértice corrige el caso sin alterar ningún otro valor.
     """
-    if x <= a or x >= c:
+    if x == b:
+        return 1.0
+    elif x <= a or x >= c:
         return 0.0
-    elif a < x <= b:
+    elif x < b:
         return (x - a) / (b - a)
-    elif b < x < c:
+    else:
         return (c - x) / (c - b)
 
 
