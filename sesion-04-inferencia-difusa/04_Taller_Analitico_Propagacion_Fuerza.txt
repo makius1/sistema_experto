@@ -1,0 +1,96 @@
+TALLER ANALÍTICO 4: PROPAGACIÓN DE FUERZA (MODELO MAMDANI)
+
+Regla del sistema de evaluación de proyectos:
+
+R1: SI (Rentabilidad es ALTA) O (Impacto_Social es ALTO) Y (Riesgo es BAJO)
+    ENTONCES (Aprobación es SEGURA)
+
+Grados de membresía obtenidos tras fuzzificar el Proyecto X:
+    Rentabilidad ALTA    = 0.6
+    Impacto_Social ALTO  = 0.2
+    Riesgo BAJO          = 0.4
+
+Operadores de Mamdani:
+    AND (T-Norma)     -> MIN(a, b)
+    OR  (T-Conorma)   -> MAX(a, b)
+    NOT (Complemento) -> 1.0 - a
+
+
+PUNTO 1 - FUERZA DE ACTIVACIÓN DE LA PREMISA COMPLETA
+
+Se respeta el orden indicado: primero el paréntesis del OR, después el AND.
+
+Paso 1 - Se resuelve el OR con la T-Conorma (máximo):
+
+    fuerza_or = MAX(Rentabilidad_ALTA, Impacto_ALTO)
+    fuerza_or = MAX(0.6, 0.2)
+    fuerza_or = 0.6
+
+Paso 2 - Se resuelve el AND con la T-Norma (mínimo):
+
+    fuerza_total = MIN(fuerza_or, Riesgo_BAJO)
+    fuerza_total = MIN(0.6, 0.4)
+    fuerza_total = 0.4
+
+RESULTADO: la premisa completa tiene una fuerza de activación de 0.4.
+
+Interpretación: el OR se queda con la premisa MÁS FUERTE porque basta que una
+de las dos se cumpla, mientras que el AND se queda con la MÁS DÉBIL porque
+exige que ambas se cumplan. El riesgo bajo (0.4) es el eslabón que limita toda
+la regla: aunque la rentabilidad sea alta en 0.6, la conclusión no puede ser
+más verdadera que la premisa más floja de la conjunción.
+
+
+PUNTO 2 - ALTURA DE TRUNCAMIENTO DE LA CONCLUSIÓN
+
+El conjunto difuso "Aprobación SEGURA" se trunca (se corta) a la altura
+0.4 en el eje Y.
+
+Eso es la IMPLICACIÓN de Mamdani: el paso ENTONCES no traslada la conclusión
+completa, sino recortada a la altura de la fuerza de la premisa. Gráficamente,
+al triángulo de "Aprobación SEGURA" se le corta la punta con una línea
+horizontal en y = 0.4, y queda un trapecio.
+
+La conclusión hereda la incertidumbre de la premisa: si solo estamos 40 %
+seguros de que se cumplen las condiciones, solo podemos estar 40 % seguros de
+que la aprobación es segura.
+
+
+OBSERVACIÓN 1 - LA AMBIGÜEDAD DEL ORDEN DE PRECEDENCIA
+
+El enunciado indica evaluar primero el paréntesis del OR, y esa instrucción es
+necesaria porque el resultado cambia según cómo se agrupe:
+
+    Lectura A - (A O B) Y C   ->  MIN(MAX(0.6, 0.2), 0.4) = 0.4   <- la usada
+    Lectura B -  A O (B Y C)  ->  MAX(0.6, MIN(0.2, 0.4)) = 0.6
+
+En lógica clásica el AND tiene mayor precedencia que el OR, lo que llevaría a
+la lectura B y a una fuerza de 0.6, un 50 % más alta. La diferencia no es
+menor: con 0.4 el proyecto queda por debajo de la regla de denegación, y con
+0.6 quedaría por encima. Por eso una base de reglas difusas debe escribir los
+paréntesis de forma explícita y no confiar en la precedencia implícita.
+
+
+OBSERVACIÓN 2 - LOS GRADOS NO TIENEN QUE SUMAR 1
+
+En el código de la sesión aparecen Riesgo_BAJO = 0.4 y Riesgo_ALTO = 0.7, que
+suman 1.1. No es un error: en lógica difusa los conjuntos se solapan y la suma
+de las pertenencias de una variable no está obligada a valer 1. Esa es una
+diferencia de fondo con la probabilidad, donde las alternativas sí suman 1.
+
+
+OBSERVACIÓN 3 - LA CONCLUSIÓN CONTRARIA GANA
+
+Con la segunda regla del ejemplo:
+
+    R2: SI Riesgo es ALTO ENTONCES Aprobación es DENEGADA
+        activación = 0.7
+
+El sistema queda con dos conclusiones activas al mismo tiempo:
+
+    APROBACIÓN SEGURA   -> 0.4
+    APROBACIÓN DENEGADA -> 0.7
+
+La denegación pesa casi el doble. Un motor difuso no elige una y descarta la
+otra como haría la lógica clásica: conserva ambas con su fuerza y deja que la
+defuzzificación produzca el veredicto final, que es el tema de la sesión 5.
