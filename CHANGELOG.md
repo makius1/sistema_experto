@@ -5,6 +5,30 @@ marcada además con una etiqueta de Git (`git tag`).
 
 ---
 
+## [entrega-sesion-05] — Sesión 5: Defuzzificación
+
+### Agregado
+- `defuzzificacion_frenado.py`: implementación del centro de gravedad con
+  operaciones matriciales de NumPy, con una segunda versión sin NumPy que sirve
+  de verificación cruzada.
+- Método de la media de los máximos, para comparar criterios de defuzzificación.
+- Funciones de membresía gaussiana y truncamiento de Mamdani sobre dominios
+  continuos, aplicadas a un sistema de frenado automático.
+- `05_Taller_Analitico_Centro_de_Masa.txt`: cálculo paso a paso del centroide
+  sobre el dominio discreto del descuento comercial.
+
+### Decisiones de diseño
+- Se implementa el centroide propio en lugar de usar scikit-fuzzy, como permite
+  el enunciado: escribir la fórmula obliga a entenderla y evita una dependencia
+  pesada.
+- La función retorna `None` cuando el área total es cero, en lugar de fallar por
+  división o devolver un número arbitrario: significa que ninguna regla se
+  disparó y el sistema no tiene recomendación.
+- NumPy se declara como primera dependencia del proyecto, porque el enunciado
+  pide operaciones matriciales sobre dominios de cientos de puntos.
+
+---
+
 ## [entrega-sesion-04] — Sesión 4: Inferencia difusa (modelo Mamdani)
 
 ### Agregado

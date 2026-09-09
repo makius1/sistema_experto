@@ -29,24 +29,34 @@ Cada sesión incluye un **taller analítico** (documento de análisis) y un
 ├── sesion-04-inferencia-difusa/ Inferencia difusa (modelo Mamdani)
 │   ├── 04_Taller_Analitico_Propagacion_Fuerza.txt
 │   └── motor_mamdani_rrhh.py
+├── sesion-05-defuzzificacion/  Defuzzificación por centro de gravedad
+│   ├── 05_Taller_Analitico_Centro_de_Masa.txt
+│   └── defuzzificacion_frenado.py
 ├── .gitattributes              Normalización de finales de línea y binarios
 ├── .gitignore
 ├── CHANGELOG.md                Registro de cambios por sesión
 ├── README.md
-└── requirements.txt            Dependencias (ninguna: solo librería estándar)
+└── requirements.txt            Dependencias (NumPy, desde la sesión 5)
 ```
 
 ---
 
 ## Cómo ejecutar
 
-No hay dependencias externas. Con Python 3.8 o superior:
+Las sesiones 1 a 4 usan solo la librería estándar. Desde la sesión 5 se
+requiere NumPy:
+
+```bash
+pip install -r requirements.txt
+```
+
 
 ```bash
 python sesion-01-introduccion/diagnostico_servidor.py
 python sesion-02-motor-inferencia/motor_fraude.py
 python sesion-03-logica-difusa/fuzzificacion_conductores.py
 python sesion-04-inferencia-difusa/motor_mamdani_rrhh.py
+python sesion-05-defuzzificacion/defuzzificacion_frenado.py
 ```
 
 ### En GitHub Codespaces
@@ -165,6 +175,33 @@ de bono anual de un empleado a partir de su desempeño y antigüedad.
 | Agregación | dentro de `inferir()` | Reglas con la misma conclusión se unifican con el máximo |
 
 Verifica computacionalmente los grados calculados a mano en el taller analítico.
+
+### Sesión 5 — Defuzzificación
+
+El motor de Mamdani produce respuestas como "el bono debería ser un 70 % Alto y
+un 40 % Medio". Correcto dentro del sistema, inservible fuera: nómina no puede
+pagar un salario "70 % Alto". La **defuzzificación** cierra el ciclo tomando la
+geometría del área bajo la curva y encontrando el punto que la representa. El
+estándar de la industria es el **centro de gravedad**:
+
+    COG = Σ (x · μ(x)) / Σ μ(x)
+
+**Taller analítico.** Cálculo del centroide sobre un dominio discreto de cuatro
+puntos para determinar el porcentaje exacto de un descuento comercial.
+
+**Taller de laboratorio.** `defuzzificacion_frenado.py` — sistema de frenado
+automático que calcula la fuerza exacta en Newtons.
+
+| Componente | Ubicación | Función |
+|---|---|---|
+| Centroide | `centroide()` | COG con operaciones matriciales de NumPy; retorna `None` si no hay área |
+| Verificación | `centroide_paso_a_paso()` | La misma fórmula sin NumPy, para validación cruzada |
+| Método alterno | `media_de_maximos()` | Promedia solo los picos: permite comparar criterios |
+| Membresía continua | `gaussiana()`, `truncar()` | Campana de Gauss e implicación de Mamdani sobre el dominio |
+
+Valida contra el resultado calculado a mano (23.33 %) y demuestra que truncar
+una curva simétrica no desplaza su centroide: lo que mueve la decisión es la
+competencia entre conclusiones distintas.
 
 ---
 
