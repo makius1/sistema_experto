@@ -5,6 +5,27 @@ marcada además con una etiqueta de Git (`git tag`).
 
 ---
 
+## [entrega-sesion-04] — Sesión 4: Inferencia difusa (modelo Mamdani)
+
+### Agregado
+- `motor_mamdani_rrhh.py`: motor de inferencia difusa con los operadores de
+  Mamdani implementados como funciones con nombre propio (T-Norma, T-Conorma y
+  complemento), las tres reglas del bono anual y la agregación por máximo.
+- Motor genérico que evalúa premisas anidadas de forma recursiva, capaz de
+  resolver estructuras como `(A O B) Y C` sin escribir una función por regla.
+- Verificación computacional de los grados calculados a mano en el taller.
+- `04_Taller_Analitico_Propagacion_Fuerza.txt`: cálculo paso a paso de la
+  fuerza de activación y de la altura de truncamiento de la conclusión.
+
+### Decisiones de diseño
+- Los operadores se encapsulan en funciones en lugar de escribir `min` y `max`
+  sueltos dentro de las reglas: existen otras T-Normas, como el producto
+  algebraico, y cambiar de criterio debe ser modificar una función.
+- La premisa se modela como un árbol y no como una lista plana, porque el orden
+  de precedencia entre AND y OR altera el resultado y debe quedar explícito.
+
+---
+
 ## [entrega-sesion-03] — Sesión 3: Incertidumbre y lógica difusa
 
 ### Agregado

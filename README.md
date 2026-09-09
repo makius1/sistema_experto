@@ -26,6 +26,9 @@ Cada sesión incluye un **taller analítico** (documento de análisis) y un
 ├── sesion-03-logica-difusa/    Incertidumbre y lógica difusa
 │   ├── 03_Taller_Analitico_Grados_de_Verdad.txt
 │   └── fuzzificacion_conductores.py
+├── sesion-04-inferencia-difusa/ Inferencia difusa (modelo Mamdani)
+│   ├── 04_Taller_Analitico_Propagacion_Fuerza.txt
+│   └── motor_mamdani_rrhh.py
 ├── .gitattributes              Normalización de finales de línea y binarios
 ├── .gitignore
 ├── CHANGELOG.md                Registro de cambios por sesión
@@ -43,6 +46,7 @@ No hay dependencias externas. Con Python 3.8 o superior:
 python sesion-01-introduccion/diagnostico_servidor.py
 python sesion-02-motor-inferencia/motor_fraude.py
 python sesion-03-logica-difusa/fuzzificacion_conductores.py
+python sesion-04-inferencia-difusa/motor_mamdani_rrhh.py
 ```
 
 ### En GitHub Codespaces
@@ -136,6 +140,31 @@ etapas de un sistema experto difuso:
 
 Evalúa a tres conductores (3, 6 y 12 años) y verifica computacionalmente los
 grados calculados a mano en el taller analítico.
+
+### Sesión 4 — Inferencia difusa (modelo Mamdani)
+
+La sesión anterior convirtió valores reales en grados de verdad. Falta el paso
+siguiente: **cómo evaluar una regla cuyas premisas no son ni completamente
+verdaderas ni completamente falsas.** Ebrahim Mamdani lo resolvió en 1975
+propagando la incertidumbre con operadores matemáticos en lugar de lógica
+booleana: la **T-Norma** `MIN` para el AND, la **T-Conorma** `MAX` para el OR y
+el complemento `1 - a` para el NOT. El paso ENTONCES, la **implicación**, no
+traslada la conclusión completa: la trunca a la altura de la fuerza de la premisa.
+
+**Taller analítico.** Cálculo de la fuerza de activación de una premisa anidada
+`(A O B) Y C` y determinación de la altura de truncamiento de la conclusión.
+
+**Taller de laboratorio.** `motor_mamdani_rrhh.py` — motor que decide el nivel
+de bono anual de un empleado a partir de su desempeño y antigüedad.
+
+| Componente | Ubicación | Función |
+|---|---|---|
+| Operadores difusos | `t_norma_and()`, `t_conorma_or()`, `complemento_not()` | Los operadores con nombre propio, no `min`/`max` sueltos en las reglas |
+| Reglas del negocio | `evaluar_reglas_bono()` | Las tres reglas en la forma directa que pide el taller |
+| Motor genérico | `evaluar_premisa()`, `inferir()` | Evalúa premisas anidadas de forma recursiva: resuelve `(A O B) Y C` |
+| Agregación | dentro de `inferir()` | Reglas con la misma conclusión se unifican con el máximo |
+
+Verifica computacionalmente los grados calculados a mano en el taller analítico.
 
 ---
 
