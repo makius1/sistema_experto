@@ -1,15 +1,18 @@
 # Dependencias del proyecto
 # ---------------------------------------------------------------------------
-# Los prototipos de las sesiones 1 y 2 usan ÚNICAMENTE la librería estándar de
-# Python: diccionarios, listas, condicionales y ciclos. No requieren paquetes
-# externos, y esa es una decisión de diseño: el motor de inferencia se
-# implementa desde cero para comprender su funcionamiento interno.
+# Las sesiones 1 a 4 usan únicamente la librería estándar de Python: los
+# motores de inferencia, la lógica difusa y los operadores de Mamdani se
+# implementan desde cero para comprender su funcionamiento interno.
 #
-# Este archivo se mantiene en el repositorio porque:
-#   1. Documenta explícitamente que no hay dependencias ocultas.
-#   2. El devcontainer lo ejecuta al crear el entorno (postCreateCommand).
-#   3. Cuando una sesión posterior requiera una librería, se agrega aquí con
-#      su versión fijada y el entorno queda reproducible para cualquiera.
+# A partir de la sesión 5 se incorpora NumPy, porque la defuzzificación opera
+# sobre dominios discretizados de cientos o miles de puntos y el enunciado
+# pide resolverla con operaciones matriciales en lugar de ciclos.
+
+numpy>=1.24
+
+# El enunciado menciona scikit-fuzzy como alternativa profesional, pero
+# permite explícitamente usar código de centroide propio. Se optó por lo
+# segundo: escribir la fórmula obliga a entenderla, evita una dependencia
+# pesada y permite manejar el caso en que no hay área que equilibrar.
 #
-# Ejemplo de cómo se agregaría una dependencia futura:
-# experta==1.9.4
+# scikit-fuzzy>=0.5
