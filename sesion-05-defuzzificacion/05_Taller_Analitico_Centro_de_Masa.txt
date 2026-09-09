@@ -1,0 +1,92 @@
+TALLER ANALÍTICO 5: CÁLCULO DEL CENTRO DE MASA (DEFUZZIFICACIÓN)
+
+Problema: el motor de inferencia entregó una curva escalonada para el
+porcentaje de descuento comercial. Hay que convertirla en una cifra exacta.
+
+Fórmula del Centro de Gravedad (COG):
+
+    COG = Σ (x · μ(x)) / Σ μ(x)
+
+Datos del dominio discreto (4 puntos):
+
+    x = 10 %  ->  μ(10) = 0.2
+    x = 20 %  ->  μ(20) = 0.8
+    x = 30 %  ->  μ(30) = 0.8
+    x = 40 %  ->  μ(40) = 0.0
+
+
+PUNTO 1 - NUMERADOR: Σ (x · μ(x))
+
+    10 × 0.2  =   2.0
+    20 × 0.8  =  16.0
+    30 × 0.8  =  24.0
+    40 × 0.0  =   0.0
+    -------------------
+    Numerador =  42.0
+
+
+PUNTO 2 - DENOMINADOR: Σ μ(x)   (el área total)
+
+    0.2 + 0.8 + 0.8 + 0.0 = 1.8
+
+    Denominador = 1.8
+
+
+PUNTO 3 - DESCUENTO EXACTO (CRISP)
+
+    COG = 42.0 / 1.8
+    COG = 23.333...
+
+RESULTADO: el sistema recomienda otorgar un descuento del 23.33 %.
+
+
+INTERPRETACIÓN
+
+El resultado no coincide con ninguno de los cuatro puntos evaluados, y eso es
+exactamente lo que se busca: la defuzzificación no ELIGE una opción de la
+lista, encuentra el punto de equilibrio entre todas.
+
+Se puede leer como una balanza. Los puntos x = 20 y x = 30 tienen el mismo
+peso (0.8 cada uno), así que por sí solos equilibrarían en su punto medio,
+25 %. Pero el punto x = 10 aporta un peso adicional de 0.2 en el extremo
+izquierdo, que jala el equilibrio hacia abajo hasta 23.33 %. El punto x = 40
+tiene peso 0.0 y por lo tanto no influye en nada, aunque esté en el dominio.
+
+Ese es el sentido físico del centroide: es el punto donde la figura se
+sostendría en equilibrio si el área bajo la curva fuera una lámina con masa.
+
+
+OBSERVACIÓN 1 - POR QUÉ HACE FALTA ESTA ETAPA
+
+El motor de Mamdani de la sesión 4 produce respuestas como "el bono debería
+ser un 70 % Alto y un 40 % Medio". Es correcto dentro del sistema, pero
+inoperante fuera de él: nómina no puede pagar un salario "70 % Alto" ni un
+cliente puede recibir un descuento "0.8 verdadero". La defuzzificación es el
+puente entre el razonamiento difuso y el mundo real, donde las decisiones son
+números concretos.
+
+
+OBSERVACIÓN 2 - EL DENOMINADOR NO PUEDE SER CERO
+
+Si ninguna regla se dispara, todos los grados valen 0 y la fórmula intentaría
+dividir por cero. Matemáticamente el centroide no existe porque no hay área
+que equilibrar, y operativamente significa que el sistema no tiene
+conocimiento aplicable a ese caso. Una implementación correcta debe detectar
+esa situación y responder que no hay recomendación, en lugar de fallar o de
+devolver un número inventado.
+
+
+OBSERVACIÓN 3 - EL COG NO ES EL ÚNICO MÉTODO
+
+El centro de gravedad es el estándar de la industria porque tiene en cuenta
+toda la información disponible: cada punto del dominio influye en proporción a
+su grado de verdad. Existen otros métodos:
+
+  - Media de los Máximos (MOM): promedia solo los puntos de mayor pertenencia.
+    Con estos datos daría (20 + 30) / 2 = 25 %, e ignoraría por completo el
+    aporte de x = 10.
+  - Bisectriz: busca el valor que parte el área en dos mitades iguales.
+
+El MOM es más rápido y produce respuestas más extremas; el COG es más suave y
+más justo porque no descarta información. En control industrial se prefiere el
+COG precisamente porque evita saltos bruscos en la salida.
