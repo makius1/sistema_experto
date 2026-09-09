@@ -5,6 +5,29 @@ marcada además con una etiqueta de Git (`git tag`).
 
 ---
 
+## [entrega-sesion-06] — Sesión 6: Árboles de decisión y machine learning
+
+### Agregado
+- `experto_automatico_marketing.py`: entropía de Shannon y ganancia de
+  información implementadas a mano, entrenamiento de un árbol de decisión y
+  extracción automática de la base de reglas.
+- Función que traduce el árbol entrenado al formato de reglas de producción de
+  las sesiones 1 y 2, cerrando el puente entre el enfoque estadístico y el
+  simbólico.
+- Demostración del sobreajuste mediante registros que contradicen el patrón.
+- `06_Taller_Analitico_Ganancia_Informacion.txt`: cálculo de la entropía y de la
+  ganancia de las dos preguntas candidatas, y la regla aprendida.
+
+### Decisiones de diseño
+- Se entrena con `criterion="entropy"` en lugar del `gini` que scikit-learn trae
+  por defecto, para que el algoritmo aplique la misma métrica del taller.
+- Las métricas se implementan a mano antes de usar la librería: sin eso el
+  entrenamiento sería una caja negra.
+- El conjunto de datos se construye con un patrón conocido, de modo que se pueda
+  verificar que el árbol lo descubre y que descarta la variable irrelevante.
+
+---
+
 ## [entrega-sesion-05] — Sesión 5: Defuzzificación
 
 ### Agregado

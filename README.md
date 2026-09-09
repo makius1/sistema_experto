@@ -32,19 +32,22 @@ Cada sesión incluye un **taller analítico** (documento de análisis) y un
 ├── sesion-05-defuzzificacion/  Defuzzificación por centro de gravedad
 │   ├── 05_Taller_Analitico_Centro_de_Masa.txt
 │   └── defuzzificacion_frenado.py
+├── sesion-06-arboles-decision/ Árboles de decisión y machine learning
+│   ├── 06_Taller_Analitico_Ganancia_Informacion.txt
+│   └── experto_automatico_marketing.py
 ├── .gitattributes              Normalización de finales de línea y binarios
 ├── .gitignore
 ├── CHANGELOG.md                Registro de cambios por sesión
 ├── README.md
-└── requirements.txt            Dependencias (NumPy, desde la sesión 5)
+└── requirements.txt            Dependencias (NumPy y scikit-learn)
 ```
 
 ---
 
 ## Cómo ejecutar
 
-Las sesiones 1 a 4 usan solo la librería estándar. Desde la sesión 5 se
-requiere NumPy:
+Las sesiones 1 a 4 usan solo la librería estándar. La sesión 5 requiere NumPy
+y la sesión 6 añade scikit-learn:
 
 ```bash
 pip install -r requirements.txt
@@ -57,6 +60,7 @@ python sesion-02-motor-inferencia/motor_fraude.py
 python sesion-03-logica-difusa/fuzzificacion_conductores.py
 python sesion-04-inferencia-difusa/motor_mamdani_rrhh.py
 python sesion-05-defuzzificacion/defuzzificacion_frenado.py
+python sesion-06-arboles-decision/experto_automatico_marketing.py
 ```
 
 ### En GitHub Codespaces
@@ -202,6 +206,34 @@ automático que calcula la fuerza exacta en Newtons.
 Valida contra el resultado calculado a mano (23.33 %) y demuestra que truncar
 una curva simétrica no desplaza su centroide: lo que mueve la decisión es la
 competencia entre conclusiones distintas.
+
+### Sesión 6 — Árboles de decisión y machine learning
+
+El obstáculo histórico de los sistemas expertos es la **adquisición del
+conocimiento**: extraerle las reglas a un experto es caro, lento y depende de
+lo que recuerde. El árbol de decisión invierte el proceso — se le entrega el
+histórico y **el algoritmo deduce las reglas** midiendo el desorden de los datos
+con la **entropía de Shannon** y la **ganancia de información**.
+
+Es la unión de las dos mitades del curso: la máquina aprende de los datos, pero
+el resultado no es una caja negra sino reglas SI-ENTONCES legibles y auditables.
+
+**Taller analítico.** Cálculo de la entropía y la ganancia de información de dos
+preguntas candidatas, y redacción de la regla que el árbol aprende solo.
+
+**Taller de laboratorio.** `experto_automatico_marketing.py` — el algoritmo
+descubre qué clientes hacen clic en un anuncio.
+
+| Componente | Ubicación | Función |
+|---|---|---|
+| Entropía y ganancia | `entropia()`, `ganancia_informacion()` | Implementadas a mano: verifican qué hace `.fit()` por dentro |
+| Modelo | `DecisionTreeClassifier(criterion="entropy")` | Usa entropía, no el `gini` por defecto, para aplicar la métrica de clase |
+| Puente simbólico | `extraer_reglas()` | Traduce el árbol al formato de reglas de las sesiones 1 y 2 |
+| Diagnóstico | `feature_importances_` | El árbol descarta por sí solo la variable irrelevante |
+
+El árbol recupera exactamente el patrón sembrado en los datos, asigna
+importancia cero a la edad, y una sección final demuestra el **sobreajuste**
+agregando registros que contradicen el patrón.
 
 ---
 
