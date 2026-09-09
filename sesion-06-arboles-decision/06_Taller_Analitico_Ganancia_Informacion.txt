@@ -1,0 +1,147 @@
+TALLER ANALÍTICO 6: ENTROPÍA Y GANANCIA DE INFORMACIÓN
+
+Conjunto de datos: 6 clientes, de los cuales 3 compraron un seguro y 3 no.
+
+Fórmula de la entropía de Shannon:
+
+    H(S) = - Σ p(i) · log2( p(i) )
+
+Mide el desorden o impureza de un conjunto. Vale 1.0 cuando está
+perfectamente mezclado (mitad y mitad) y 0.0 cuando es puro (todos iguales).
+
+Fórmula de la ganancia de información:
+
+    Ganancia = H(antes) - Σ ( |Si| / |S| ) · H(Si)
+
+Es decir, la entropía original menos el promedio PONDERADO de la entropía de
+los grupos resultantes. La ponderación importa: un grupo de 4 elementos pesa
+el doble que uno de 2.
+
+
+ENTROPÍA INICIAL
+
+    3 compraron de 6  ->  p = 0.5
+    3 no compraron    ->  p = 0.5
+
+    H(S) = -(0.5 × log2 0.5) - (0.5 × log2 0.5)
+    H(S) = -(0.5 × -1) - (0.5 × -1)
+    H(S) = 0.5 + 0.5
+    H(S) = 1.0
+
+El desorden es máximo: con esta información no se puede predecir nada.
+
+
+PREGUNTA A: ¿ES MAYOR DE 30 AÑOS?
+
+    Grupo Izquierdo: [2 compraron, 2 no]  ->  4 elementos
+        p = 2/4 = 0.5 en ambas clases
+        H(Izq) = -(0.5 × -1) - (0.5 × -1) = 1.0
+
+    Grupo Derecho:   [1 compró, 1 no]     ->  2 elementos
+        p = 1/2 = 0.5 en ambas clases
+        H(Der) = 1.0
+
+    Entropía ponderada después de preguntar:
+        H(después) = (4/6 × 1.0) + (2/6 × 1.0)
+        H(después) = 0.667 + 0.333
+        H(después) = 1.0
+
+    GANANCIA A = 1.0 - 1.0 = 0.0
+
+
+PREGUNTA B: ¿TIENE AUTO?
+
+    Grupo Izquierdo: [3 compraron, 0 no]  ->  3 elementos
+        Grupo puro: p = 1.0 en una clase, 0.0 en la otra
+        H(Izq) = -(1.0 × log2 1.0) = -(1.0 × 0) = 0.0
+
+    Grupo Derecho:   [0 compraron, 3 no]  ->  3 elementos
+        Grupo puro también
+        H(Der) = 0.0
+
+    Entropía ponderada después de preguntar:
+        H(después) = (3/6 × 0.0) + (3/6 × 0.0)
+        H(después) = 0.0
+
+    GANANCIA B = 1.0 - 0.0 = 1.0
+
+
+PUNTO 1 - ¿CUÁL PREGUNTA APORTA MÁS?
+
+    Pregunta A -> ganancia 0.0
+    Pregunta B -> ganancia 1.0   <- LA MEJOR
+
+La Pregunta B es la ganadora, y por el margen máximo posible.
+
+Lo notable es que la Pregunta A tiene ganancia EXACTAMENTE CERO. No es que
+aporte poco: no aporta nada. Después de preguntar la edad seguimos igual de
+desorientados que antes, porque ambos grupos quedaron mitad y mitad. Es una
+pregunta que parece razonable para un humano y que es inútil para separar
+estos datos.
+
+La Pregunta B, en cambio, produce una separación perfecta: dos grupos puros,
+entropía cero, incertidumbre eliminada por completo. Por eso el algoritmo la
+elegiría como nodo raíz.
+
+
+PUNTO 2 - LA REGLA QUE EL SISTEMA ACABA DE APRENDER SOLO
+
+Si el árbol toma la Pregunta B como tronco, la base de conocimientos que se
+genera automáticamente es:
+
+    R1: SI [Tiene Auto] ENTONCES [Compró Seguro]
+    R2: SI NO [Tiene Auto] ENTONCES [NO Compró Seguro]
+
+Nadie se las dictó. No hubo que sentar a un experto durante semanas a explicar
+su criterio: el algoritmo las dedujo midiendo el desorden de los datos.
+
+Ese es el punto de la sesión. En las sesiones 1 y 2 las reglas las escribió un
+humano; aquí las escribe el algoritmo. Es la unión del enfoque estadístico con
+el simbólico: la máquina aprende de los datos, pero el resultado no es una caja
+negra sino reglas SI-ENTONCES legibles, discutibles y auditables.
+
+
+OBSERVACIÓN 1 - CUIDADO CON LA SEPARACIÓN PERFECTA
+
+Una ganancia de 1.0 sobre 6 registros no demuestra que tener auto CAUSE la
+compra del seguro. Con una muestra tan pequeña, una coincidencia se ve idéntica
+a una ley. Si el séptimo cliente tuviera auto y no comprara, la regla se
+rompería de inmediato.
+
+Es el problema del SOBREAJUSTE: el árbol memoriza los datos que vio en lugar de
+aprender el patrón que los genera. Un modelo con 6 ejemplos puede alcanzar el
+100 % de acierto sobre esos 6 y fallar sistemáticamente con clientes nuevos.
+Por eso en la práctica se limita la profundidad del árbol y se evalúa sobre
+datos que el modelo nunca vio.
+
+
+OBSERVACIÓN 2 - POR QUÉ LA PONDERACIÓN NO ES OPCIONAL
+
+En la Pregunta A los grupos quedaron de 4 y 2 elementos. Si se promediara sin
+ponderar, (1.0 + 1.0) / 2 daría también 1.0 y en este caso no cambiaría la
+conclusión. Pero con grupos desiguales sí cambia: separar 1 elemento puro de 99
+mezclados casi no reduce el desorden del conjunto, aunque ese grupo de 1 tenga
+entropía 0. La ponderación por tamaño es lo que impide que el algoritmo se
+entusiasme con divisiones que dejan grupos diminutos.
+
+
+OBSERVACIÓN 3 - RESPUESTA A LA PREGUNTA DE DISCUSIÓN
+
+¿Puede la IA construir la base de conocimientos mejor y más rápido que un
+humano? Más rápido, sin duda: lo que a un ingeniero del conocimiento le toma
+semanas de entrevistas, el algoritmo lo hace en milisegundos. Mejor, depende de
+qué se entienda por mejor:
+
+  - La máquina encuentra patrones que el experto no ve, y no tiene los sesgos
+    ni los olvidos de la memoria humana.
+  - Pero solo puede aprender lo que esté en los datos. Si el histórico contiene
+    un sesgo, el árbol lo aprende y lo convierte en regla, con apariencia de
+    objetividad matemática.
+  - Y encuentra CORRELACIÓN, no causalidad. Puede descubrir que los clientes de
+    cierto barrio pagan menos sin entender que la causa real es el nivel de
+    ingresos, no la dirección.
+
+La conclusión razonable no es reemplazar al experto sino invertir su papel: el
+algoritmo propone las reglas y el experto las valida, las corrige o las
+descarta. Y eso solo es posible porque el árbol produce reglas legibles: con
+una red neuronal no habría nada que discutir.
