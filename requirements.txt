@@ -9,6 +9,7 @@
 # pide resolverla con operaciones matriciales en lugar de ciclos.
 
 numpy>=1.24
+scikit-learn>=1.3
 
 # El enunciado menciona scikit-fuzzy como alternativa profesional, pero
 # permite explícitamente usar código de centroide propio. Se optó por lo
